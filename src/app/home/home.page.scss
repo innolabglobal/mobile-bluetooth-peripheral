@@ -25,3 +25,18 @@
 #container a {
   text-decoration: none;
 }
+
+// ion-content.background {
+//   --background: url(../../assets/img/bg_mobile.jpg) 0 0/100% 100% no-repeat;
+// }
+
+ion-list {
+  margin: 10px;
+}
+
+ion-thumbnail {
+  --size: 150px;
+  padding: 10px;
+  display: block;
+  margin: 0 auto;
+}
