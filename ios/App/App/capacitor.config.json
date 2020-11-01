@@ -1,0 +1,19 @@
+{
+  "appId": "global.innolab.bluetooth",
+  "appName": "mobileInfo",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {},
+  "server": {
+    "url": "http://192.168.0.114:8100",
+    "cleartext": true,
+    "originalUrl": "http://192.168.0.114:8100",
+    "originalCleartext": true
+  }
+}
