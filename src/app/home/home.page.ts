@@ -17,7 +17,7 @@ export class HomePage {
   date;
   time;
   pipe = new DatePipe('en-US');
-  image = '';
+  image = '/assets/img/bg_mobile.jpg';
   imgAB = [];
   imgABCount;
 
@@ -30,13 +30,6 @@ export class HomePage {
   ionViewWillEnter() {
     console.log('***** ionViewWillEnter');
 
-    // this.username = 'LOREM IPSUM';
-    // this.email = 'NAME@EMAIL.COM';
-    // this.device = '123467890';
-    // this.date = this.pipe.transform(new Date(), 'shortDate');
-    // this.time = this.pipe.transform(new Date(), 'shortTime');
-    this.image = '/assets/img/bg_mobile.jpg';
-
     this.plt.ready().then((readySource) => {
 
       console.log('***** Platform ready from', readySource);
@@ -47,18 +40,6 @@ export class HomePage {
           res => console.log('***** bluetoothle.initialize success', res),
           err => console.log('***** bluetoothle.initialize error', err)
         );
-
-      // this.bluetoothle
-      //   .startScan({
-      //     services: [
-      //       '180D',
-      //       '180F'
-      //     ],
-      //   })
-      //   .subscribe(
-      //     res => console.log('bluetoothle***** .startScan success', res),
-      //     err => console.log('bluetoothle***** .startScan error', err)
-      //   );
 
       const peripheralParams = {
         request: true,
@@ -122,7 +103,6 @@ export class HomePage {
       const returnedValue = successRes.value;
       console.log('***** writeRequested', successRes, returnedValue);
       const byte = this.bluetoothle.encodedStringToBytes(returnedValue);
-      // console.log('***** Value ===> ', this.bluetoothle.bytesToEncodedString(value));
       console.log('***** Byte ===> ', byte);
       const value = this.bluetoothle.bytesToString(byte);
       console.log('***** Value ===> ', value);
@@ -160,13 +140,8 @@ export class HomePage {
           break;
       }
 
-      // if (successRes.characteristic === '2234') {
-      //   this.handleInputNameAndEmail(successRes, value)
-      // }
-
       this.cdRef.detectChanges();
-      // console.log('***** Value ===> ', this.bluetoothle.stringToBytes(value));
-      // console.log('***** Value ===> ', this.bluetoothle.bytesToString(value));
+
       return;
     }
 
@@ -254,8 +229,6 @@ export class HomePage {
       res => this.handleStartAdvertisingSuccess(res),
       err => console.log('***** bluetoothle.startAdvertising error', err)
     );
-
-    // this.bluetoothle.services()
   }
 
   private handleStartAdvertisingSuccess(successRes) {
