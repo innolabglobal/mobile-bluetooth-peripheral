@@ -20,6 +20,8 @@ export class HomePage {
   image = '/assets/img/bg_mobile.jpg';
   imgAB = [];
   imgABCount;
+  objAB = [];
+  objABCount;
 
   constructor(public bluetoothle: BluetoothLE,
               public cdRef: ChangeDetectorRef,
@@ -55,15 +57,18 @@ export class HomePage {
     });
   }
 
-  private handleInputNameAndEmail(successRes, value) {
+  private handleInputDetails(successRes, value) {
     const resObj = JSON.parse(value);
     console.log('***** resObj ===> ', resObj, resObj.name, resObj.email);
     this.username = resObj.name;
     this.email = resObj.email;
     this.device = successRes.address;
+    this.image = resObj.image;
     console.log('***** this ===> ', this.username, this.email);
     this.date = this.pipe.transform(new Date(), 'shortDate');
     this.time = this.pipe.transform(new Date(), 'shortTime');
+    this.objABCount = undefined;
+    this.objAB = [];
   }
 
   private handleInputImage(successRes, value) {
@@ -85,10 +90,24 @@ export class HomePage {
     }
   }
 
-  private handleInputFileSize(successRes, value) {
-    const resObj = JSON.parse(value);
-    console.log('***** resObj ===> ', resObj, resObj.fileSize);
-    this.imgABCount = resObj.fileSize;
+  private handleInputObject(successRes, value) {
+    console.log('***** handleInputObject ===>', `/${this.objABCount}/`, value);
+
+    if (this.objABCount === undefined) {
+      console.log('***** handleInputObject undefined ===>', `/${this.objABCount}/`, parseInt(value, 10) + 1);
+      this.objABCount = parseInt(value, 10) + 1;
+    } else if (parseInt(value, 10) === this.objABCount) {
+      console.log('***** handleInputObject SHOULD HAVE DONE ===>', `/${this.objABCount}/`, this.objAB);
+      const fullStr = this.objAB.join('');
+      this.handleInputDetails(successRes, fullStr);
+      console.log('***** handleInputObject SHOULD HAVE DONE IMAGE ===>', `/${this.objABCount}/`, fullStr);
+      this.cdRef.detectChanges();
+    } else if (this.objAB.length < this.objABCount) {
+      console.log('***** handleInputObject not equal ===>', `/${this.objABCount}/`, this.objAB);
+      this.objAB.push(value);
+    } else {
+      console.log('***** handleInputObject DONE ===>', `/${this.objABCount}/`, this.objAB);
+    }
   }
 
   private handleInitializePeripheralSuccess(successRes: any) {
@@ -130,13 +149,13 @@ export class HomePage {
 
       switch (successRes.characteristic) {
         case '2234':
-          this.handleInputNameAndEmail(successRes, value);
+          // this.handleInputNameAndEmail(successRes, value);
           break;
         case '3234':
           this.handleInputImage(successRes, value);
           break;
-        case '4244':
-          this.handleInputFileSize(successRes, value);
+        case '4234':
+          this.handleInputObject(successRes, value);
           break;
       }
 
@@ -236,6 +255,9 @@ export class HomePage {
 
     this.imgABCount = undefined;
     this.imgAB = [];
+
+    this.objABCount = undefined;
+    this.objAB = [];
   }
 
   ab2str(buf) {
