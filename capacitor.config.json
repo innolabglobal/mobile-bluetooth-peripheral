@@ -1,5 +1,5 @@
 {
-  "appId": "io.ionic.starter",
+  "appId": "global.innolab.bluetooth",
   "appName": "mobileInfo",
   "bundledWebRuntime": false,
   "npmClient": "npm",
@@ -9,5 +9,11 @@
       "launchShowDuration": 0
     }
   },
-  "cordova": {}
+  "cordova": {},
+  "server": {
+    "url": "http://192.168.0.114:8100",
+    "cleartext": true,
+    "originalUrl": "http://192.168.0.114:8100",
+    "originalCleartext": true
+  }
 }
