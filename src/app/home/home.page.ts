@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BluetoothLE } from '@ionic-native/bluetooth-le/ngx';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -71,25 +72,6 @@ export class HomePage {
     this.objAB = [];
   }
 
-  private handleInputImage(successRes, value) {
-    console.log('***** handleInputImage ===>', `/${this.imgABCount}/`, value);
-
-    if (this.imgABCount === undefined) {
-      console.log('***** handleInputImage undefined ===>', `/${this.imgABCount}/`, parseInt(value, 10) + 1);
-      this.imgABCount = parseInt(value, 10) + 1;
-    } else if (parseInt(value, 10) === this.imgABCount) {
-      console.log('***** handleInputImage SHOULD HAVE DONE ===>', `/${this.imgABCount}/`, this.imgAB);
-      this.image = this.imgAB.join('').replace(/"/g, '');
-      console.log('***** handleInputImage SHOULD HAVE DONE IMAGE ===>', `/${this.imgABCount}/`, this.image);
-      this.cdRef.detectChanges();
-    } else if (this.imgAB.length < this.imgABCount) {
-      console.log('***** handleInputImage not equal ===>', `/${this.imgABCount}/`, this.imgAB);
-      this.imgAB.push(value);
-    } else {
-      console.log('***** handleInputImage DONE ===>', `/${this.imgABCount}/`, this.imgAB);
-    }
-  }
-
   private handleInputObject(successRes, value) {
     console.log('***** handleInputObject ===>', `/${this.objABCount}/`, value);
 
@@ -110,129 +92,96 @@ export class HomePage {
     }
   }
 
+  onSubscribed(successRes) {
+    this.bluetoothle.connect({ address: successRes.address, autoConnect: true })
+      .subscribe(res => console.log(res), err => console.log(err));
+  }
+
+  onWriteRequested(successRes) {
+    const returnedValue = successRes.value;
+    console.log('***** writeRequested', successRes, returnedValue);
+    const byte = this.bluetoothle.encodedStringToBytes(returnedValue);
+    console.log('***** Byte ===> ', byte);
+    const value = this.bluetoothle.bytesToString(byte);
+    console.log('***** Value ===> ', value);
+    const ab = this.byte2ab(byte);
+    console.log('***** Array Buffer ===> ', ab);
+    const str = this.ab2str(ab);
+    console.log('***** String ===> ', str);
+
+    this.bluetoothle.isConnected({ address: successRes.address })
+      .then(res => console.log(res))
+      .catch(err => console.log(err));
+
+    this.bluetoothle.isBonded({ address: successRes.address })
+      .then(res => console.log(res))
+      .catch(err => console.log(err));
+
+    const respondParams = {
+      requestId: successRes.requestId,
+      value: successRes.value,
+    };
+
+    this.bluetoothle.respond(respondParams)
+      .then(res => console.log(res))
+      .catch(err => console.log(err));
+
+    switch (successRes.characteristic) {
+      case '4234':
+        this.handleInputObject(successRes, value);
+        break;
+    }
+
+    this.cdRef.detectChanges();
+
+    return;
+  }
+
+  onEnabled(successRes) {
+    const params = {
+      service: '0x1234',
+      characteristics: [
+        {
+          uuid: '0x4234',
+          permissions: {
+            read: true,
+            write: true,
+            // readEncryptionRequired: true,
+            // writeEncryptionRequired: true,
+          },
+          properties: {
+            read: true,
+            writeWithoutResponse: true,
+            write: true,
+            notify: true,
+            indicate: true,
+            // authenticatedSignedWrites: true,
+            // notifyEncryptionRequired: true,
+            // indicateEncryptionRequired: true,
+          }
+        }
+      ]
+    };
+
+    this.bluetoothle.addService(params).then(
+      res => this.handleAddServiceSuccess(res),
+      err => console.log('***** bluetoothle.addService error', err)
+    );
+  }
+
   private handleInitializePeripheralSuccess(successRes: any) {
     console.log('***** bluetoothle.initializePeripheral success', successRes);
 
-    if (successRes.status === 'subscribed') {
-      this.bluetoothle.connect({ address: successRes.address, autoConnect: true })
-        .subscribe(res => console.log(res), err => console.log(err));
-    }
-
-    if (successRes.status === 'writeRequested') {
-      const returnedValue = successRes.value;
-      console.log('***** writeRequested', successRes, returnedValue);
-      const byte = this.bluetoothle.encodedStringToBytes(returnedValue);
-      console.log('***** Byte ===> ', byte);
-      const value = this.bluetoothle.bytesToString(byte);
-      console.log('***** Value ===> ', value);
-      const ab = this.byte2ab(byte);
-      console.log('***** Array Buffer ===> ', ab);
-      const str = this.ab2str(ab);
-      console.log('***** String ===> ', str);
-
-      this.bluetoothle.isConnected({ address: successRes.address })
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
-
-      this.bluetoothle.isBonded({ address: successRes.address })
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
-
-      const respondParams = {
-        requestId: successRes.requestId,
-        value: successRes.value,
-      };
-
-      this.bluetoothle.respond(respondParams)
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
-
-      switch (successRes.characteristic) {
-        case '2234':
-          // this.handleInputNameAndEmail(successRes, value);
-          break;
-        case '3234':
-          this.handleInputImage(successRes, value);
-          break;
-        case '4234':
-          this.handleInputObject(successRes, value);
-          break;
-      }
-
-      this.cdRef.detectChanges();
-
-      return;
-    }
-
-    if (successRes.status === 'enabled') {
-
-      const params = {
-        service: '0x1234',
-        characteristics: [
-          {
-            uuid: '0x2234',
-            permissions: {
-              read: true,
-              write: true,
-              // readEncryptionRequired: true,
-              // writeEncryptionRequired: true,
-            },
-            properties: {
-              read: true,
-              writeWithoutResponse: true,
-              write: true,
-              notify: true,
-              indicate: true,
-              // authenticatedSignedWrites: true,
-              // notifyEncryptionRequired: true,
-              // indicateEncryptionRequired: true,
-            }
-          },
-          {
-            uuid: '0x3234',
-            permissions: {
-              read: true,
-              write: true,
-              // readEncryptionRequired: true,
-              // writeEncryptionRequired: true,
-            },
-            properties: {
-              read: true,
-              writeWithoutResponse: true,
-              write: true,
-              notify: true,
-              indicate: true,
-              // authenticatedSignedWrites: true,
-              // notifyEncryptionRequired: true,
-              // indicateEncryptionRequired: true,
-            }
-          },
-          {
-            uuid: '0x4234',
-            permissions: {
-              read: true,
-              write: true,
-              // readEncryptionRequired: true,
-              // writeEncryptionRequired: true,
-            },
-            properties: {
-              read: true,
-              writeWithoutResponse: true,
-              write: true,
-              notify: true,
-              indicate: true,
-              // authenticatedSignedWrites: true,
-              // notifyEncryptionRequired: true,
-              // indicateEncryptionRequired: true,
-            }
-          }
-        ]
-      };
-
-      this.bluetoothle.addService(params).then(
-        res => this.handleAddServiceSuccess(res),
-        err => console.log('***** bluetoothle.addService error', err)
-      );
+    switch (successRes.status) {
+      case 'subscribed':
+        this.onSubscribed(successRes);
+        break;
+      case 'writeRequested':
+        this.onWriteRequested(successRes);
+        break;
+      case 'enabled':
+        this.onEnabled(successRes);
+        break;
     }
   }
 
